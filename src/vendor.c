@@ -1,6 +1,7 @@
 #include "vendor.h"
 #include "customer.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 vendor *create_vendor(customer *c) {
@@ -35,7 +36,7 @@ int vendor_list_size(vendor_list v_list) {
 
 void display_vendor_list(vendor_list v_list) {
     for (vendor *v = v_list; v != NULL; v = v->next) {
-        printf("%p -> ", (void*)v);
+        printf("%p -> ", v);
     }
     printf("NULL\n");
 }
@@ -45,7 +46,8 @@ void free_vendor(vendor *v) {
 }
 
 void free_vendor_list(vendor_list v_list) {
-    for (vendor *v = v_list; v != NULL; v = v->next) {
+    while (v_list != NULL) {
+        vendor *v = pop_vendor(&v_list);
         free_vendor(v);
     }
 }

@@ -157,9 +157,9 @@ int main() {
 
     printf("----\nCustomer count: %d\navg_time: %f\n", customer_count, (double)total_time/customer_count);
 
+    free_vendor_list(available_vendors);
     free_q(customer_queue);
     free_pq(event_queue);
-    free_vendor_list(available_vendors);
 
     return 0;
 }
