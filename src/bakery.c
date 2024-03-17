@@ -23,6 +23,35 @@ double normal_delay(double mean) {
     return -mean*log(1 - ((double)rand()/RAND_MAX));
 }
 
+double factorial(int n) {
+    if (n == 0) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+double erlang_C(int m, double E) {    
+    double sum = 0;
+    for (int i = 0; i < m; i++) {
+        sum += pow(E, i) / factorial(i);
+    }
+
+    double numerator = (pow(E, m) / factorial(m)) * (m / m - E);
+    double denominator = sum + numerator;
+
+    return numerator / denominator;
+}
+
+double calculate_response_time() {
+    double numerator = erlang_C(N_VENDORS, (1/ARRIVAL_RATE) / (double)MEAN_SERVICE_TIME);
+    double lambda = 1/ARRIVAL_RATE;
+    double mu = MEAN_SERVICE_TIME;
+    double left_side = numerator / (lambda * mu - N_VENDORS);
+
+    return left_side + 1.0/mu;
+}
+
 void add_customer(customer *c) {
     for (int i = 0; i < N_VENDORS; i++) {
         // Find the first available vendor
@@ -56,7 +85,6 @@ void remove_customer(customer *c) {
 }
 
 void process_arrival(event *e) {
-    add_customer(e->c);
     customer *new_customer = create_customer(current_time + normal_delay(1.0/ARRIVAL_RATE));
     event *new_arrival = create_arrival(new_customer->atime, new_customer);
     insert_pq(event_queue, new_arrival);
@@ -85,13 +113,16 @@ void display_bakery() {
 }
 
 void process_events(prioqueue *event_queue) {
-    while (size_pq(event_queue) > 0 && current_time < CLOSING_TIME) {
+    while (size_pq(event_queue) > 0) {
         event *e = remove_min_pq(event_queue);
         current_time = e->etime;
-        
+
         if (e->type == EVENT_ARRIVAL) {
-            process_arrival(e);
-        } else {
+            add_customer(e->c);
+            if (current_time < CLOSING_TIME) {
+                process_arrival(e);
+            }
+        } else if (e->type == EVENT_DEPARTURE) {
             process_departure(e);
         }
         
@@ -113,13 +144,14 @@ int main() {
     customer *customer_one = create_customer(60);
     event *arrival_one = create_arrival(customer_one->atime, customer_one);
     insert_pq(event_queue, arrival_one);
-    display_pq(event_queue);
 
     // Event loop
     process_events(event_queue);
 
     printf("----\nCustomer count: %d\navg_time: %f\n", customer_count, (double)total_time/customer_count);
 
+    display_pq(event_queue);
+    display_q(customer_queue);
     free_q(customer_queue);
     free_pq(event_queue);
 
