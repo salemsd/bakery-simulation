@@ -32,6 +32,7 @@ link *create_elink(event *e, link *next) {
 void free_pq(prioqueue *q) {
     while (size_pq(q) != 0) {
         event *e = remove_min_pq(q);
+        e->c != NULL ? free_customer(e->c) : 0;
         free_event(e);
     }
     free(q);

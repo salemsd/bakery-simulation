@@ -7,9 +7,9 @@
 #include "prioqueue.h"
 
 #define N_VENDORS 3
-#define CLOSING_TIME 28800
 #define ARRIVAL_RATE (1.0/60)
 #define MEAN_SERVICE_TIME 150
+#define CLOSING_TIME 28800
 
 prioqueue*  event_queue;
 queue*      customer_queue;
@@ -117,11 +117,11 @@ int main() {
 
     // Event loop
     process_events(event_queue);
-    
-    free_pq(event_queue);
-    free_q(customer_queue);
 
     printf("----\nCustomer count: %d\navg_time: %f\n", customer_count, (double)total_time/customer_count);
+
+    free_q(customer_queue);
+    free_pq(event_queue);
 
     return 0;
 }
