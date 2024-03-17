@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "prioqueue.h"
+#include "customer.h"
+#include "vendor.h"
 #include "event.h"
 
 typedef struct _link {
@@ -33,6 +35,7 @@ void free_pq(prioqueue *q) {
     while (size_pq(q) != 0) {
         event *e = remove_min_pq(q);
         e->c != NULL ? free_customer(e->c) : 0;
+        e->v != NULL ? free_vendor(e->v) : 0;
         free_event(e);
     }
     free(q);
