@@ -32,25 +32,29 @@ double factorial(int n) {
     }
 }
 
-double erlang_C(int m, double E) {    
+/**
+ * Gives the probability that an arriving customer will have to wait for service (all vendors busy).
+ */
+double erlang_C() {    
+    double server_utilization = ARRIVAL_RATE * (double)MEAN_SERVICE_TIME * (1.0/N_VENDORS);
+    double c = (double)N_VENDORS;
+    
     double sum = 0;
-    for (int i = 0; i < m; i++) {
-        sum += pow(E, i) / factorial(i);
+    int i;
+    for (i = 0; i < N_VENDORS; i++) {
+        sum += pow((c * server_utilization), i) / factorial(i);
     }
 
-    double numerator = (pow(E, m) / factorial(m)) * (m / m - E);
-    double denominator = sum + numerator;
-
-    return numerator / denominator;
+    return 1.0 / ( 1 + ( 1 - server_utilization )*( ( factorial((int)c) )/pow(c*server_utilization, (int)c) ) * sum );
 }
 
-double calculate_response_time() {
-    double numerator = erlang_C(N_VENDORS, (1/ARRIVAL_RATE) / (double)MEAN_SERVICE_TIME);
-    double lambda = 1/ARRIVAL_RATE;
-    double mu = MEAN_SERVICE_TIME;
-    double left_side = numerator / (lambda * mu - N_VENDORS);
+double compute_response_time() {
+    double numerator = erlang_C();
+    double c = (double)N_VENDORS;
+    double lambda = (double)ARRIVAL_RATE;
+    double mu = 1.0/MEAN_SERVICE_TIME;
 
-    return left_side + 1.0/mu;
+    return (numerator / (c * mu - lambda)) + 1.0/mu;
 }
 
 void add_customer(customer *c) {
@@ -156,6 +160,7 @@ int main() {
     process_events(event_queue);
 
     printf("----\nCustomer count: %d\navg_time: %f\n", customer_count, (double)total_time/customer_count);
+    printf("Theoretical response time (erlang): %f\n", compute_response_time());
 
     free_vendor_list(available_vendors);
     free_q(customer_queue);
